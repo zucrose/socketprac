@@ -2,6 +2,8 @@ const express = require("express");
 const { createServer } = require("node:http");
 const { Server } = require("socket.io");
 const cors = require("cors");
+import dotenv from "dotenv";
+dotenv.config();
 
 const app = express();
 app.use(cors());
@@ -22,6 +24,10 @@ io.on("connection", (socket) => {
       console.log(data + "joined");
     } else console.log("failed");
   });
+  socket.on("leaveRoom", async (data) => {
+    socket.leave(data);
+    console.log(data + "left");
+  });
   socket.on("sentMessage", (data) => {
     console.log(data.room);
     io.to(data.room).emit("incomingMessage", data.message);
@@ -31,6 +37,7 @@ io.on("connection", (socket) => {
     io.to(data.room).emit("newMove", data);
   });
 });
-server.listen(3001, () => {
+const port = process.env.PORT || 3001;
+server.listen(port, () => {
   console.log("server running at http://localhost:3001");
 });
