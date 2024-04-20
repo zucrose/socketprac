@@ -10,19 +10,40 @@ app.use(cors());
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: " https://ziczaczoe.netlify.app/",
+    origin: " http://localhost:3000",
     methods: ["GET", "POST"],
   },
 });
 
 io.on("connection", (socket) => {
   console.log("a user connected");
-  socket.on("joinRoom", async (data) => {
-    const sockets = await io.in(data).fetchSockets();
+  socket.on("joinRoom", async (data, callback) => {
+    let msg,
+      roomsize = 0;
+    const sockets = await io.in(data.room).fetchSockets();
     if (sockets.length <= 1) {
-      socket.join(data);
-      console.log(data + "joined");
-    } else console.log("failed");
+      console.log(sockets.length);
+      if (sockets.length == 0 && data.create == true) {
+        socket.join(data.room);
+        msg = "success";
+        roomsize = 1;
+      } else if (sockets.length == 1 && data.create == false) {
+        socket.join(data.room);
+        roomsize = 2;
+        msg = "success";
+      } else msg = "failure";
+      console.log(data.room + "joined" + data.create);
+    } else {
+      console.log("failure");
+      msg = "failure";
+    }
+    console.log(msg);
+    callback({
+      status: msg,
+      roomsize: roomsize,
+    });
+
+    io.to(data.room).emit("roomStatus", { roomsize: roomsize });
   });
   socket.on("leaveRoom", async (data) => {
     socket.leave(data);
