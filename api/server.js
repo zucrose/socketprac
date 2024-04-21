@@ -10,7 +10,7 @@ app.use(cors());
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: " http://localhost:3000",
+    origin: "*",
     methods: ["GET", "POST"],
   },
 });
@@ -43,7 +43,19 @@ io.on("connection", (socket) => {
       roomsize: roomsize,
     });
 
-    io.to(data.room).emit("roomStatus", { roomsize: roomsize });
+    io.to(data.room).emit("roomStatus", {
+      roomsize: roomsize,
+    });
+  });
+  socket.on("gameEvents", async (data) => {
+    const sockets = await io.in(data.room).fetchSockets();
+    console.log(data?.playerTimerExpired);
+    if (data?.playerTimerExpired) {
+      io.to(data.room).emit("roomStatus", {
+        roomsize: sockets.length,
+        playerTimerExpired: data.playerTimerExpired,
+      });
+    }
   });
   socket.on("leaveRoom", async (data) => {
     socket.leave(data);
