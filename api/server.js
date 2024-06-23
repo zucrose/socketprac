@@ -3,6 +3,10 @@ const { createServer } = require("node:http");
 const { Server } = require("socket.io");
 const cors = require("cors");
 const dotenv = require("dotenv");
+const sendmoves = require("./controller/sendmoves");
+const joinroom = require("./controller/joinroom");
+const leaveroom = require("./controller/leaveroom");
+
 dotenv.config();
 
 const app = express();
@@ -14,62 +18,124 @@ const io = new Server(server, {
     methods: ["GET", "POST"],
   },
 });
-
+const roomMap = new Map();
+var roomObj = [];
+for (let i = 0; i < 1000; i++) {
+  let obj1 = {
+    roomsize: 0,
+    restart: 0,
+    player1: { id: 0, wins: 0, mark: null, loss: 0 },
+    player2: { id: 0, wins: 0, mark: null, loss: 0 },
+    gameboard: [
+      [" ", " ", " "],
+      [" ", " ", " "],
+      [" ", " ", " "],
+    ],
+    lastWinner: null,
+    gameState: "inProgress",
+    turn: 0,
+  };
+  roomObj.push(obj1);
+}
 io.on("connection", (socket) => {
   console.log("a user connected");
-  socket.on("joinRoom", async (data, callback) => {
-    let msg,
-      roomsize = 0;
-    const sockets = await io.in(data.room).fetchSockets();
-    if (sockets.length <= 1) {
-      console.log(sockets.length);
-      if (sockets.length == 0 && data.create == true) {
-        socket.join(data.room);
-        msg = "success";
-        roomsize = 1;
-      } else if (sockets.length == 1 && data.create == false) {
-        socket.join(data.room);
-        roomsize = 2;
-        msg = "success";
-      } else msg = "failure";
-      console.log(data.room + "joined" + data.create);
-    } else {
-      console.log("failure");
-      msg = "failure";
-    }
-    console.log(msg);
-    callback({
-      status: msg,
-      roomsize: roomsize,
-    });
 
-    io.to(data.room).emit("roomStatus", {
-      roomsize: roomsize,
+  socket.on("joinRoom", async (data, callback) => {
+    let obj = await joinroom(data, roomObj, socket, io, roomMap);
+    roomObj = obj.roomObj;
+    console.log(obj.msg);
+    callback({
+      status: obj.msg,
+      room: data.room,
     });
   });
-  socket.on("gameEvents", async (data) => {
-    const sockets = await io.in(data.room).fetchSockets();
+  socket.on("timeExpired", async (data) => {
     console.log(data?.playerTimerExpired);
     if (data?.playerTimerExpired) {
+      if (roomObj[data.room].player1.id == data.playerTimerExpired) {
+        roomObj[data.room].lastWinner = roomObj[data.room].player1.id;
+        roomObj[data.room].player1.wins++;
+        roomObj[data.room].player2.loss++;
+      } else {
+        roomObj[data.room].lastWinner = roomObj[data.room].player2.id;
+        roomObj[data.room].player2.wins++;
+        roomObj[data.room].player1.loss++;
+      }
+      roomObj[data.room].gameState = "DQ";
+      console.log(roomObj[data.room]);
       io.to(data.room).emit("roomStatus", {
-        roomsize: sockets.length,
-        playerTimerExpired: data.playerTimerExpired,
+        roomObject: roomObj[data.room],
       });
     }
   });
+
   socket.on("leaveRoom", async (data) => {
-    socket.leave(data);
-    console.log(data + "left");
+    console.log("leaving");
+    leaveroom(data, roomObj, socket, io);
+    //console.log(roomObj);
   });
+
   socket.on("sentMessage", (data) => {
     console.log(data.room);
     io.to(data.room).emit("incomingMessage", data.message);
   });
+
   socket.on("sendMove", (data) => {
-    console.log(data);
-    io.to(data.room).emit("newMove", data);
+    roomObj = sendmoves(data, roomObj, socket, io);
+  });
+
+  socket.on("RestartRoom", async (data) => {
+    const rsize = await io.in(data.room).fetchSockets();
+    roomObj[data.room].restart++;
+    if (roomObj[data.room].restart == 2) {
+      roomObj[data.room].gameboard = [
+        [" ", " ", " "],
+        [" ", " ", " "],
+        [" ", " ", " "],
+      ];
+      roomObj[data.room].gameState = "inProgress";
+      roomObj[data.room].lastWinner = null;
+      roomObj[data.room].restart = 0;
+      roomObj[data.room].turn = 0;
+      let temp = roomObj[data.room].player1.mark;
+      roomObj[data.room].player1.mark = roomObj[data.room].player2.mark;
+      roomObj[data.room].player2.mark = temp;
+    }
+    console.log(roomObj[data.room]);
+    io.to(data.room).emit("roomStatus", {
+      roomObject: roomObj[data.room],
+    });
+  });
+
+  socket.on("declareWinner", async (data) => {
+    if (data.state == "tied") {
+      roomObj[data.room].lastWinner = null;
+      roomObj[data.room].gameState = "Tied";
+    } else {
+      if (roomObj[data.room].player1.mark == data.mark) {
+        roomObj[data.room].lastWinner = roomObj[data.room].player1.id;
+        roomObj[data.room].gameState = "Won";
+        roomObj[data.room].player1.wins++;
+        roomObj[data.room].player2.loss++;
+      } else {
+        roomObj[data.room].lastWinner = roomObj[data.room].player2.id;
+        roomObj[data.room].gameState = "Won";
+        roomObj[data.room].player2.wins++;
+        roomObj[data.room].player1.loss++;
+      }
+    }
+    io.to(data.room).emit("roomStatus", {
+      roomObject: roomObj[data.room],
+    });
+  });
+  socket.on("disconnect", async () => {
+    const data = { room: roomMap.get(socket.id) };
+
+    console.log("disconnect", data);
+    if (data.room != undefined) leaveroom(data, roomObj, socket, io);
   });
 });
+
 const port = process.env.PORT || 3001;
 server.listen(port, () => {
   console.log("server running at http://localhost:3001");
