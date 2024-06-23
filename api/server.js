@@ -53,13 +53,13 @@ io.on("connection", (socket) => {
     console.log(data?.playerTimerExpired);
     if (data?.playerTimerExpired) {
       if (roomObj[data.room].player1.id == data.playerTimerExpired) {
-        roomObj[data.room].lastWinner = roomObj[data.room].player1.id;
-        roomObj[data.room].player1.wins++;
-        roomObj[data.room].player2.loss++;
-      } else {
         roomObj[data.room].lastWinner = roomObj[data.room].player2.id;
         roomObj[data.room].player2.wins++;
         roomObj[data.room].player1.loss++;
+      } else {
+        roomObj[data.room].lastWinner = roomObj[data.room].player1.id;
+        roomObj[data.room].player1.wins++;
+        roomObj[data.room].player2.loss++;
       }
       roomObj[data.room].gameState = "DQ";
       console.log(roomObj[data.room]);
