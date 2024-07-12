@@ -6,6 +6,10 @@ const dotenv = require("dotenv");
 const sendmoves = require("./controller/sendmoves");
 const joinroom = require("./controller/joinroom");
 const leaveroom = require("./controller/leaveroom");
+const { intiNameSet } = require("./utils/playernameSet");
+const hangmanPlayerObject = require("./Objects/hangmanPlayerObject");
+const hangmanRoomObject = require("./Objects/hangmanRoomObject");
+const tictactoeRoom = require("./Objects/tictactoeRoom");
 
 dotenv.config();
 
@@ -19,36 +23,29 @@ const io = new Server(server, {
   },
 });
 const roomMap = new Map();
+const nameSetArray = [];
+intiNameSet(nameSetArray);
+
 var roomObj = [];
+
 for (let i = 0; i < 1000; i++) {
-  let obj1 = {
-    roomsize: 0,
-    restart: 0,
-    player1: { id: 0, wins: 0, mark: null, loss: 0 },
-    player2: { id: 0, wins: 0, mark: null, loss: 0 },
-    gameboard: [
-      [" ", " ", " "],
-      [" ", " ", " "],
-      [" ", " ", " "],
-    ],
-    lastWinner: null,
-    gameState: "inProgress",
-    turn: 0,
-  };
+  let obj1 = { roomsize: -1, type: null };
   roomObj.push(obj1);
 }
 io.on("connection", (socket) => {
   console.log("a user connected");
 
   socket.on("joinRoom", async (data, callback) => {
-    let obj = await joinroom(data, roomObj, socket, io, roomMap);
+    let obj = await joinroom(data, roomObj, socket, io, roomMap, nameSetArray);
     roomObj = obj.roomObj;
-    console.log(obj.msg);
+    //console.log(roomObj[data.room]);
+    //console.log(obj.msg);
     callback({
       status: obj.msg,
       room: data.room,
     });
   });
+  socket.on("startRound", async (data) => {});
   socket.on("timeExpired", async (data) => {
     console.log(data?.playerTimerExpired);
     if (data?.playerTimerExpired) {
