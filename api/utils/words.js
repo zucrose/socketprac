@@ -1,5 +1,29 @@
-const word = {
-  celebrities: [
+module.exports = word = {
+  "Sport and Fitness": [
+    "Basketball",
+    "Volleyball",
+    "Decathlon",
+    "Professional",
+    "Championship",
+    "Endurance",
+    "Gymnastics",
+    "Handball",
+    "Penalty Kick",
+    "Quarterback",
+    "Racketball",
+    "Skateboarding",
+    "Synchronized Skating",
+    "Weightlifting",
+    "Water Polo",
+    "Grandmaster",
+    "Sportsmanship",
+    "Parkour",
+    "Freestyle",
+    "Curling",
+    "Penalty Shootout",
+    "Penalty Box",
+  ],
+  Celebrities: [
     "Beyonce",
     "Tom Hanks",
     "Rihanna",
@@ -24,7 +48,7 @@ const word = {
     "Amitabh Bachchan",
     "Taylor Swift",
   ],
-  food: [
+  "Food and Beverages": [
     "Escargot",
     "Kimchi",
     "Falafel",
@@ -49,7 +73,7 @@ const word = {
     "Chai",
     "Latte",
   ],
-  locations: [
+  "Famous Places": [
     "Melbourne",
     "Buenos Aires",
     "San Francisco",

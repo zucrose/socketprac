@@ -10,6 +10,8 @@ const { intiNameSet } = require("./utils/playernameSet");
 const hangmanPlayerObject = require("./Objects/hangmanPlayerObject");
 const hangmanRoomObject = require("./Objects/hangmanRoomObject");
 const tictactoeRoom = require("./Objects/tictactoeRoom");
+const StartRound = require("./controller/hangmanController.js/StartRound");
+const updateScore = require("./controller/hangmanController.js/updateScore");
 
 dotenv.config();
 
@@ -45,7 +47,16 @@ io.on("connection", (socket) => {
       room: data.room,
     });
   });
-  socket.on("startRound", async (data) => {});
+  socket.on("startRound", async (data) => {
+    //console.log(data);
+    StartRound(roomObj, data, io, socket);
+    console.log(roomObj[data.room]);
+  });
+  socket.on("updateScore", async (data) => {
+    //console.log(data);
+    updateScore(roomObj, data, io, socket);
+    console.log(roomObj[data.room]);
+  });
   socket.on("timeExpired", async (data) => {
     console.log(data?.playerTimerExpired);
     if (data?.playerTimerExpired) {

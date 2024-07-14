@@ -28,6 +28,17 @@ module.exports = leaveroom = async (data, roomObj, socket, io) => {
       }
     }
   } else if (roomObj[data.room].type == "hangman") {
+    //  console.log(roomObj[data.room], "before");
+    roomObj[data.room].playerArray = roomObj[data.room].playerArray.filter(
+      (ele) => ele.id !== data.id
+    );
+    roomObj[data.room].roomsize--;
+    //console.log(roomObj[data.room], "after");
+    if (roomObj[data.room].roomsize == 0)
+      roomObj[data.room] = {
+        roomsize: -1,
+        type: null,
+      };
   }
   console.log(data.room + "left");
   console.log(roomObj[data.room]);
