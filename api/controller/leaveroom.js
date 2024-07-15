@@ -1,4 +1,4 @@
-module.exports = leaveroom = async (data, roomObj, socket, io) => {
+module.exports = leaveroom = async (data, roomObj, socket, io, roomMap) => {
   socket.leave(data.room);
   if (roomObj[data.room].type == "tictac") {
     console.log(data);
@@ -32,6 +32,7 @@ module.exports = leaveroom = async (data, roomObj, socket, io) => {
     roomObj[data.room].playerArray = roomObj[data.room].playerArray.filter(
       (ele) => ele.id !== data.id
     );
+    roomMap.delete(data.id);
     roomObj[data.room].roomsize--;
     //console.log(roomObj[data.room], "after");
     if (roomObj[data.room].roomsize == 0)

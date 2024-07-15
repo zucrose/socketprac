@@ -49,12 +49,14 @@ io.on("connection", (socket) => {
   });
   socket.on("startRound", async (data) => {
     //console.log(data);
-    StartRound(roomObj, data, io, socket);
+    if (roomObj[data.room].roomsize != -1)
+      StartRound(roomObj, data, io, socket);
     console.log(roomObj[data.room]);
   });
   socket.on("updateScore", async (data) => {
     //console.log(data);
-    updateScore(roomObj, data, io, socket);
+    if (roomObj[data.room].roomsize != -1)
+      updateScore(roomObj, data, io, socket);
     console.log(roomObj[data.room]);
   });
   socket.on("timeExpired", async (data) => {
@@ -79,7 +81,7 @@ io.on("connection", (socket) => {
 
   socket.on("leaveRoom", async (data) => {
     console.log("leaving");
-    leaveroom(data, roomObj, socket, io);
+    leaveroom(data, roomObj, socket, io, roomMap);
     //console.log(roomObj);
   });
 
@@ -140,7 +142,7 @@ io.on("connection", (socket) => {
     const data = { room: roomMap.get(socket.id) };
 
     console.log("disconnect", data);
-    if (data.room != undefined) leaveroom(data, roomObj, socket, io);
+    if (data.room != undefined) leaveroom(data, roomObj, socket, io, roomMap);
   });
 });
 

@@ -14,7 +14,25 @@ module.exports = function updateScore(roomObj, data, io, socket) {
     if (roomObj[data.room].currentRound < roomObj[data.room].noOfRounds) {
       StartRound(roomObj, { room: data.room, tpye: "nextRound" }, io, socket);
       return;
-    } else roomObj[data.room].roomState = "end";
+    } else {
+      roomObj[data.room].roomState = "end";
+      let mx = 0,
+        mxid;
+      roomObj[data.room].playerArray.forEach((ele) => {
+        if (ele.currentScore > mx) {
+          mx = ele.currentScore;
+          mxid = ele.id;
+        } else if (ele.currentScore == mx) {
+          mxid = "tied";
+        }
+      });
+      roomObj[data.room].lastWinner = mxid;
+      roomObj[data.room].playerArray.forEach((ele) => {
+        if (ele.id == mxid) {
+          ele.wins++;
+        }
+      });
+    }
   }
 
   io.to(data.room).emit("roomStatus", {

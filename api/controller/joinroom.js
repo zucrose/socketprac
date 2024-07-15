@@ -63,7 +63,9 @@ module.exports = joinroom = async (
       }
     } else if (
       data.type == "hangman" &&
-      (roomObj[data.room].type == "hangman" || roomObj[data.room].type == null)
+      (roomObj[data.room].type == "hangman" ||
+        roomObj[data.room].type == null) &&
+      roomMap.has(data.id) == false
     ) {
       //create an empty hangman object if the array doesnt have any other elements
       if (roomObj[data.room].roomsize === -1) {
