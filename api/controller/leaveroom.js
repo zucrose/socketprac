@@ -1,6 +1,8 @@
 module.exports = leaveroom = async (data, roomObj, socket, io, roomMap) => {
   socket.leave(data.room);
+  console.log(roomMap);
   if (roomObj[data.room].type == "tictac") {
+    roomMap.delete(data.id);
     console.log(data);
     console.log(roomObj[data.room]);
     if (roomObj[data.room].roomsize == 1)
@@ -33,6 +35,7 @@ module.exports = leaveroom = async (data, roomObj, socket, io, roomMap) => {
       (ele) => ele.id !== data.id
     );
     roomMap.delete(data.id);
+
     roomObj[data.room].roomsize--;
     //console.log(roomObj[data.room], "after");
     if (roomObj[data.room].roomsize == 0)
@@ -41,6 +44,7 @@ module.exports = leaveroom = async (data, roomObj, socket, io, roomMap) => {
         type: null,
       };
   }
+  console.log(roomMap);
   console.log(data.room + "left");
   console.log(roomObj[data.room]);
   io.to(data.room).emit("roomStatus", {
