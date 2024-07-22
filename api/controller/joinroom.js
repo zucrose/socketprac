@@ -18,6 +18,9 @@ module.exports = joinroom = async (
       data.room = Math.floor(Math.random() * 1000);
   }
   console.log(data);
+  if (data.type == null && roomObj[data.room].type != null)
+    data.type = roomObj[data.room].type;
+
   if (data.room > 0 && data.room < 1000) {
     if (
       data.type == "tictac" &&

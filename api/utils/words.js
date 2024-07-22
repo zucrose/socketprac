@@ -24,7 +24,7 @@ module.exports = word = {
     "Penalty Box",
   ],
   Celebrities: [
-    "Beyoncé",
+    "Beyonce",
     "Tom Hanks",
     "Rihanna",
     "Cristiano Ronaldo",
